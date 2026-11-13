@@ -1,23 +1,23 @@
 # HeMi Dark
 
+[![Latest release](https://img.shields.io/github/v/release/Hemal1k/HeMiDark?label=release)](https://github.com/Hemal1k/HeMiDark/releases/latest) [![Downloads](https://img.shields.io/github/downloads/Hemal1k/HeMiDark/total)](https://github.com/Hemal1k/HeMiDark/releases) [![License: MIT](https://img.shields.io/github/license/Hemal1k/HeMiDark)](LICENSE) ![Windows 10 / 11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4)
+
 A dark, minimal skin in the style of **Windows 11** for **VLC 3.0.x** – made for watching video. 9 accent colours, sharp at
 every screen scaling from 100 to 200 %.
 
 **[Download](https://github.com/Hemal1k/HeMiDark/releases/latest)** · [Project page](https://hemal1k.github.io/hemidark.html) · [Report a problem](https://github.com/Hemal1k/HeMiDark/issues)
 
-> Not signed yet – Windows SmartScreen may warn the first time (More info → Run anyway).
+![HeMi Dark in VLC](.github/screenshot.png)
 
-## Download
+## Download and set up
 
-| File | For |
-|---|---|
-| `HeMiDark-Setup.exe` | The installer – for the current user (no administrator). Pick the colour and the scaling of your screen (the current one is preselected) and it sets the skin in VLC. Run it again for another colour; uninstalling puts VLC back to its usual look. |
-| `HeMiDark-Skins.zip` | Just the skins (`.vlt`) by colour, to set in VLC yourself – see `README.txt` inside. |
+**[HeMiDark-Skins.zip](https://github.com/Hemal1k/HeMiDark/releases/latest/download/HeMiDark-Skins.zip)** – the skins (`.vlt`) by colour and `README.txt`. Needs VLC 3.0.x for Windows (tested with 3.0.24).
 
-Needs VLC 3.0.x for Windows (tested with 3.0.24).
+1. Unpack it and pick a colour folder and the file for the scaling of your screen (Windows Settings → System → Display →
+   Scale): `HeMi-Dark-<colour>-100.vlt` … `-200.vlt`.
+2. VLC → Tools → Preferences → Interface → *Use custom skin* → choose the `.vlt` → Save → restart VLC.
 
-By hand: VLC → Tools → Preferences → Interface → *Use custom skin* → choose the `.vlt` → Save → restart VLC.
-Back: menu (the button at the top left) → Tools → Preferences → *Use native style*.
+Back to the usual look: the menu (the button at the top left) → Tools → Preferences → *Use native style*.
 
 ## What is inside
 
@@ -44,8 +44,8 @@ dotnet run --project src -c Release
 writes `build\skins\<colour>\HeMi-Dark-<colour>-<scaling>.vlt`. Switches: `--colors blue,green`, `--scales 100,150`,
 `--accent #4CC2FF` or `--accent system` (the accent colour of Windows, into `build\skins\custom`).
 
-`release.ps1` builds the downloads into `build\dist` (needs [Inno Setup 6](https://jrsoftware.org/isinfo.php)). A release
-published on GitHub runs the same script in `.github\workflows\release.yml` and gets the files attached.
+`release.ps1` builds the download (`build\dist\HeMiDark-Skins.zip`). A release
+published on GitHub runs the same script in `.github\workflows\release.yml` and gets the zip attached.
 
 To try a skin without touching your VLC settings: set `APPDATA` to an empty folder and start
 `vlc.exe --intf=skins --skins2-last=<file.vlt> --no-one-instance --file-logging --logfile=<log>` – problems are in the log
@@ -59,7 +59,6 @@ as “skins2 warning” / “skins2 error”.
 | `src\SkinBuild.cs` | One skin: the palette, the pictures of the controls, the four windows, the picture atlas, `theme.xml`, packing. |
 | `src\Gfx.cs` | Drawing helpers: rounded shapes, window frame pieces, icons centred by their real pixels, text. |
 | `src\Assets` | Selawik (SIL Open Font License, copied into every skin) and `README.txt` for the downloads. |
-| `installer` | `HeMiDark.iss` (Inno Setup) and `vlc-skin.ps1`, which sets or resets the skin in `%APPDATA%\vlc\vlcrc`. |
 
 ## License
 

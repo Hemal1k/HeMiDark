@@ -1,9 +1,6 @@
 HeMi Dark - a dark, minimal skin in the style of Windows 11 for VLC 3.0.x
 ==========================================================================
 
-The easy way: HeMiDark-Setup.exe picks the right file and sets it in VLC
-(https://github.com/Hemal1k/HeMiDark/releases/latest). By hand:
-
 1. Pick a colour (folder) and the file for the scaling of your screen
    (Windows Settings > System > Display > Scale):
 
