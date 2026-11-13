@@ -1,0 +1,30 @@
+﻿<Project>
+
+  <!-- HeMi Dark: generator of a dark Windows 11 style skin for VLC 3 (skins2). It draws the pictures (GDI+, Segoe Fluent
+       Icons, Selawik), writes theme.xml and packs one .vlt per colour and screen scaling. See README.md. -->
+
+  <!-- everything the build makes (bin, obj, the skins) goes into build\ beside src\, nothing into the folder of the source;
+       set before the SDK is imported (it decides its folders there), so the SDK is imported by hand below -->
+  <PropertyGroup>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <ArtifactsPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\build'))</ArtifactsPath>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>HeMiDark</RootNamespace>
+    <AssemblyName>HeMiDark</AssemblyName>
+    <Product>HeMi Dark</Product>
+    <!-- big changes +1, smaller +0.1, really small +0.0.1 -->
+    <Version>1.1.0</Version>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+</Project>

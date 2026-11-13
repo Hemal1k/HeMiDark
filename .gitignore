@@ -1,0 +1,7 @@
+# everything the build makes goes to build\
+build/
+bin/
+obj/
+.vs/
+# own notes and the private publishing script (not part of the project)
+docs/
