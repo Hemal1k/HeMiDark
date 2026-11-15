@@ -18,6 +18,9 @@ every screen scaling from 100 to 200 %.
 2. VLC → Tools → Preferences → Interface → *Use custom skin* → choose the `.vlt` → Save → restart VLC.
 
 Back to the usual look: the menu (the button at the top left) → Tools → Preferences → *Use native style*.
+No VLC icon in the notification area: Tools → Preferences → Show settings: **All** → Interface → Main interfaces → **Skins** → untick *Systray icon* → Save.
+
+What a VLC skin cannot do (limits of VLC's skin engine, not of HeMi Dark): snap the window to the edges of the screen like other windows, hide the controls in a window when the mouse rests (they hide only in full screen), and change the look of the right-click menus.
 
 ## What is inside
 

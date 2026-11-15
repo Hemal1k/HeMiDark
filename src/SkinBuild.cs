@@ -159,6 +159,7 @@ sealed class SkinBuild
     }
 
     // ------------------------------------------------------------------ controls
+    // no tooltips: VLC draws them in the old yellow style of Windows, which a skin cannot change (the user, 2026-11-15)
 
     void Img(string image, int x, int y, int w, int h, string lt = "lefttop", string rb = "lefttop",
         string? action = null, string? action2 = null, string? visible = null, bool kx = false, bool ky = false,
@@ -170,7 +171,7 @@ sealed class SkinBuild
     void Btn(Imgs im, int x, int y, string action, string tip, string lt = "lefttop", string rb = "lefttop",
         string? visible = null, bool kx = false, bool ky = false)
         => El("Button", ("x", x), ("y", y), ("up", im.U), ("over", im.O), ("down", im.D), ("action", action),
-            ("tooltiptext", tip), ("lefttop", lt), ("rightbottom", rb), ("visible", visible),
+            ("tooltiptext", (string?)null), ("lefttop", lt), ("rightbottom", rb), ("visible", visible),
             ("xkeepratio", kx ? "true" : null), ("ykeepratio", ky ? "true" : null));
 
     void Chk(string state, Imgs off, Imgs on, string action1, string action2, string tip1, string tip2,
@@ -178,7 +179,7 @@ sealed class SkinBuild
         => El("Checkbox", ("x", x), ("y", y), ("state", state),
             ("up1", off.U), ("over1", off.O), ("down1", off.D),
             ("up2", on.U), ("over2", on.O), ("down2", on.D),
-            ("action1", action1), ("action2", action2), ("tooltiptext1", tip1), ("tooltiptext2", tip2),
+            ("action1", action1), ("action2", action2), ("tooltiptext1", (string?)null), ("tooltiptext2", (string?)null),
             ("lefttop", lt), ("rightbottom", rb), ("visible", visible));
 
     void Txt(string text, string font, Color color, int x, int y, int w, string align = "left",
@@ -190,7 +191,7 @@ sealed class SkinBuild
     void SliderH(string value, Imgs th, int x, int y, int len, string tip, string lt = "lefttop",
         string rb = "lefttop", string? visible = null)
         => El("Slider", ("x", x), ("y", y), ("points", $"(0,0),({len},0)"), ("value", value),
-            ("up", th.U), ("over", th.O), ("down", th.D), ("thickness", Px(10)), ("tooltiptext", tip),
+            ("up", th.U), ("over", th.O), ("down", th.D), ("thickness", Px(10)), ("tooltiptext", (string?)null),
             ("lefttop", lt), ("rightbottom", rb), ("visible", visible));
 
     static string Hex(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
@@ -715,7 +716,7 @@ sealed class SkinBuild
         {
             string val = i == 0 ? "equalizer.preamp" : $"equalizer.band({i - 1})";
             El("Slider", ("x", cols[i]), ("y", railTop + r), ("points", $"(0,{L}),(0,0)"), ("value", val),
-                ("up", th.U), ("over", th.O), ("down", th.D), ("thickness", Px(12)), ("tooltiptext", tips[i]));
+                ("up", th.U), ("over", th.O), ("down", th.D), ("thickness", Px(12)), ("tooltiptext", (string?)null));
         }
         Img(coverId, 0, railBot, W, H - railBot, action: "move");
         Close("Layout");

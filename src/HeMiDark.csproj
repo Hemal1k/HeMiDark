@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <!-- HeMi Dark: generator of a dark Windows 11 style skin for VLC 3 (skins2). It draws the pictures (GDI+, Segoe Fluent
        Icons, Selawik), writes theme.xml and packs one .vlt per colour and screen scaling. See README.md. -->
@@ -21,7 +21,7 @@
     <AssemblyName>HeMiDark</AssemblyName>
     <Product>HeMi Dark</Product>
     <!-- big changes +1, smaller +0.1, really small +0.0.1 -->
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
