@@ -1,4 +1,4 @@
-# HeMi Dark
+# <img src=".github/icon.png" width="40" height="40" alt=""> HeMi Dark
 
 [![Latest release](https://img.shields.io/github/v/release/Hemal1k/HeMiDark?label=release)](https://github.com/Hemal1k/HeMiDark/releases/latest) [![Downloads](https://img.shields.io/github/downloads/Hemal1k/HeMiDark/total)](https://github.com/Hemal1k/HeMiDark/releases) [![License: MIT](https://img.shields.io/github/license/Hemal1k/HeMiDark)](LICENSE) ![Windows 10 / 11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4)
 
