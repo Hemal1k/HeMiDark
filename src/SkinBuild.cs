@@ -412,7 +412,8 @@ sealed class SkinBuild
 
         Directory.CreateDirectory(Path.GetDirectoryName(vltPath)!);
         if (File.Exists(vltPath)) File.Delete(vltPath);
-        var psi = new ProcessStartInfo("tar", $"-czf \"{vltPath}\" -C \"{dir}\" theme.xml img fonts")
+        // tar of Windows by its full path: a bare "tar" was looked for in the folder of the program first
+        var psi = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "tar.exe"), $"-czf \"{vltPath}\" -C \"{dir}\" theme.xml img fonts")
         { UseShellExecute = false, RedirectStandardError = true };
         using var p = Process.Start(psi)!;
         string err = p.StandardError.ReadToEnd();

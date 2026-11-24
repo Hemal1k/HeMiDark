@@ -24,8 +24,8 @@ static class Program
 
     /// <summary>
     /// Builds the skins into build\skins\&lt;colour&gt;\HeMi-Dark-&lt;colour&gt;-&lt;scale&gt;.vlt – every colour and scaling, or
-    /// fewer with --colors blue,green / --scales 100,150, or one own colour with --accent #RRGGBB (or "system").
-    /// release.ps1 packs them into the installer and the zip.
+    /// fewer with --colors blue,green / --scales 100,150, or one custom color with --accent #RRGGBB (or "system").
+    /// release.ps1 packs them into the zip.
     /// </summary>
     static int Main(string[] args)
     {
