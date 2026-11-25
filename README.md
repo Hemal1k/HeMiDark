@@ -12,6 +12,7 @@ every display scale from 100% to 200%.
 ## Download and set up
 
 **[HeMiDark-Skins.zip](https://github.com/Hemal1k/HeMiDark/releases/latest/download/HeMiDark-Skins.zip)** – the skins (`.vlt`) by color and `README.txt`. Needs VLC 3.0.x for Windows (tested with 3.0.24).
+Checksum: `SHA256SUMS.txt` in the release – compare it with PowerShell: `Get-FileHash HeMiDark-Skins.zip`.
 
 1. Extract the zip, pick a color folder and the file that matches your display scale (Windows Settings → System → Display →
    Scale): `HeMi-Dark-<color>-100.vlt` … `-200.vlt`.

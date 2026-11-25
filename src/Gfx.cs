@@ -8,15 +8,23 @@ namespace HeMiDark;
 /// <summary>Drawing helpers over GDI+ (anti-aliasing, rounded shapes, icons from Segoe Fluent Icons).</summary>
 static class Gfx
 {
-    public static readonly FontFamily IconFamily = PickIconFamily();
+    /// <summary>
+    /// The icons come only from Segoe Fluent Icons (no fallback to Segoe MDL2 Assets: it has other and partly missing
+    /// glyphs). Program checks it with <see cref="HasFont"/> before anything is built.
+    /// </summary>
+    public const string IconFontName = "Segoe Fluent Icons";
 
-    static FontFamily PickIconFamily()
+    public static readonly FontFamily IconFamily = new(IconFontName);
+
+    /// <summary>Whether a font family is installed (the constructor of FontFamily throws when it is not).</summary>
+    public static bool HasFont(string name)
     {
-        foreach (var name in new[] { "Segoe Fluent Icons", "Segoe MDL2 Assets" })
+        try
         {
-            try { return new FontFamily(name); } catch (ArgumentException) { }
+            using var f = new FontFamily(name);
+            return true;
         }
-        throw new InvalidOperationException("The font Segoe Fluent Icons / Segoe MDL2 Assets is missing.");
+        catch (ArgumentException) { return false; }
     }
 
     public static Color C(string hex) => ColorTranslator.FromHtml(hex);
@@ -157,12 +165,7 @@ static class Gfx
         return ((l + r) / 2 - tx, (t + bt) / 2 - ty);
     }
 
-    public static Font UiFont(float px, bool semibold = false)
-    {
-        string fam = semibold ? "Segoe UI Semibold" : "Segoe UI";
-        try { return new Font(fam, px, FontStyle.Regular, GraphicsUnit.Pixel); }
-        catch (ArgumentException) { return new Font("Segoe UI", px, semibold ? FontStyle.Bold : FontStyle.Regular, GraphicsUnit.Pixel); }
-    }
+    public static Font UiFont(float px) => new("Segoe UI", px, FontStyle.Regular, GraphicsUnit.Pixel);
 
     public static SizeF Measure(string text, Font f)
     {

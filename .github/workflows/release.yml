@@ -32,6 +32,11 @@ jobs:
           Add-Type -AssemblyName System.Drawing
           if ((New-Object System.Drawing.Text.InstalledFontCollection).Families.Name -contains 'Segoe Fluent Icons') { exit 0 }
           Invoke-WebRequest https://aka.ms/SegoeFluentIcons -OutFile "$env:RUNNER_TEMP\fluent.zip"
+          # the font draws every icon of the skin: only the checked version (Segoe-Fluent-Icons.zip, 2026-11-24) goes in;
+          # when Microsoft updates the zip, the build stops here and the new hash has to be checked and set by hand
+          $expected = '333edb37cd496f877d5997183fa9900043d39e6f1097dd010b24cb9cb23ec89f'
+          $actual = (Get-FileHash "$env:RUNNER_TEMP\fluent.zip" -Algorithm SHA256).Hash.ToLower()
+          if ($actual -ne $expected) { throw "Segoe Fluent Icons: unexpected file (SHA256 $actual)" }
           Expand-Archive "$env:RUNNER_TEMP\fluent.zip" "$env:RUNNER_TEMP\fluent"
           Add-Type -Namespace Native -Name Gdi -MemberDefinition '[DllImport("gdi32.dll", CharSet = CharSet.Unicode)] public static extern int AddFontResource(string file);'
           Get-ChildItem "$env:RUNNER_TEMP\fluent" -Recurse -Filter *.ttf | ForEach-Object {

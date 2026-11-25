@@ -9,10 +9,10 @@ using static HeMiDark.Gfx;
 
 namespace HeMiDark;
 
-record Imgs(string U, string O, string D);
+sealed record Imgs(string U, string O, string D);
 
 /// <summary>Builds one skin (theme.xml + pictures + fonts) for one colour and scaling and packs it into a .vlt.</summary>
-sealed class SkinBuild
+sealed class SkinBuild : IDisposable
 {
     // --- Palette (Windows 11, dark mode) ---
     static readonly Color Bg = C("#202020");          // window / Mica
@@ -54,6 +54,9 @@ sealed class SkinBuild
         selawik = pfc.Families[0];
     }
 
+    /// <summary>Frees the private font collection (selawik belongs to it, so it must not be used after this).</summary>
+    public void Dispose() => pfc.Dispose();
+
     int Px(double v) => (int)Math.Round(v * S);
     int R => Px(8);
 
@@ -75,7 +78,7 @@ sealed class SkinBuild
     {
         int px = FontPx(basePx);
         if (fonts.TryAdd(id, px))
-            head.AppendLine($"  <Font id=\"{id}\" file=\"fonts/{(semibold ? "selawksb.ttf" : "selawk.ttf")}\" size=\"{px}\"/>");
+            head.AppendLine(CultureInfo.InvariantCulture, $"  <Font id=\"{id}\" file=\"fonts/{(semibold ? "selawksb.ttf" : "selawk.ttf")}\" size=\"{px}\"/>");
         return id;
     }
 
@@ -145,9 +148,9 @@ sealed class SkinBuild
                 g.DrawImage(p.b, new Rectangle(p.x, p.y, p.b.Width, p.b.Height), new Rectangle(0, 0, p.b.Width, p.b.Height), GraphicsUnit.Pixel);
         }
         atlas.Save(Path.Combine(imgDir, name + ".png"), ImageFormat.Png);
-        xml.AppendLine($"  <Bitmap id=\"{name}\" file=\"img/{name}.png\" alphacolor=\"#FF00FF\">");
+        xml.AppendLine(CultureInfo.InvariantCulture, $"  <Bitmap id=\"{name}\" file=\"img/{name}.png\" alphacolor=\"#FF00FF\">");
         foreach (var p in placed.OrderBy(p => p.id, StringComparer.Ordinal))
-            xml.AppendLine($"    <SubBitmap id=\"{p.id}\" x=\"{p.x}\" y=\"{p.y}\" width=\"{p.b.Width}\" height=\"{p.b.Height}\"/>");
+            xml.AppendLine(CultureInfo.InvariantCulture, $"    <SubBitmap id=\"{p.id}\" x=\"{p.x}\" y=\"{p.y}\" width=\"{p.b.Width}\" height=\"{p.b.Height}\"/>");
         xml.AppendLine("  </Bitmap>");
     }
 
@@ -159,27 +162,28 @@ sealed class SkinBuild
     }
 
     // ------------------------------------------------------------------ controls
-    // no tooltips: VLC draws them in the old yellow style of Windows, which a skin cannot change (the user, 2026-11-15)
+    // no tooltips (no tooltiptext / help attributes): VLC draws them in the old yellow style of Windows, which a skin
+    // cannot change (the user, 2026-11-15)
 
     void Img(string image, int x, int y, int w, int h, string lt = "lefttop", string rb = "lefttop",
         string? action = null, string? action2 = null, string? visible = null, bool kx = false, bool ky = false,
-        bool art = false, string? help = null)
+        bool art = false)
         => El("Image", ("x", x), ("y", y), ("width", w), ("height", h), ("image", image), ("resize", "scale"),
             ("lefttop", lt), ("rightbottom", rb), ("action", action), ("action2", action2), ("visible", visible),
-            ("xkeepratio", kx ? "true" : null), ("ykeepratio", ky ? "true" : null), ("art", art ? "true" : null), ("help", help));
+            ("xkeepratio", kx ? "true" : null), ("ykeepratio", ky ? "true" : null), ("art", art ? "true" : null));
 
-    void Btn(Imgs im, int x, int y, string action, string tip, string lt = "lefttop", string rb = "lefttop",
+    void Btn(Imgs im, int x, int y, string action, string lt = "lefttop", string rb = "lefttop",
         string? visible = null, bool kx = false, bool ky = false)
         => El("Button", ("x", x), ("y", y), ("up", im.U), ("over", im.O), ("down", im.D), ("action", action),
-            ("tooltiptext", (string?)null), ("lefttop", lt), ("rightbottom", rb), ("visible", visible),
+            ("lefttop", lt), ("rightbottom", rb), ("visible", visible),
             ("xkeepratio", kx ? "true" : null), ("ykeepratio", ky ? "true" : null));
 
-    void Chk(string state, Imgs off, Imgs on, string action1, string action2, string tip1, string tip2,
+    void Chk(string state, Imgs off, Imgs on, string action1, string action2,
         int x, int y, string lt = "lefttop", string rb = "lefttop", string? visible = null)
         => El("Checkbox", ("x", x), ("y", y), ("state", state),
             ("up1", off.U), ("over1", off.O), ("down1", off.D),
             ("up2", on.U), ("over2", on.O), ("down2", on.D),
-            ("action1", action1), ("action2", action2), ("tooltiptext1", (string?)null), ("tooltiptext2", (string?)null),
+            ("action1", action1), ("action2", action2),
             ("lefttop", lt), ("rightbottom", rb), ("visible", visible));
 
     void Txt(string text, string font, Color color, int x, int y, int w, string align = "left",
@@ -188,10 +192,10 @@ sealed class SkinBuild
             ("alignment", align), ("scrolling", "none"), ("lefttop", lt), ("rightbottom", rb), ("visible", visible),
             ("xkeepratio", kx ? "true" : null), ("ykeepratio", ky ? "true" : null));
 
-    void SliderH(string value, Imgs th, int x, int y, int len, string tip, string lt = "lefttop",
+    void SliderH(string value, Imgs th, int x, int y, int len, string lt = "lefttop",
         string rb = "lefttop", string? visible = null)
         => El("Slider", ("x", x), ("y", y), ("points", $"(0,0),({len},0)"), ("value", value),
-            ("up", th.U), ("over", th.O), ("down", th.D), ("thickness", Px(10)), ("tooltiptext", (string?)null),
+            ("up", th.U), ("over", th.O), ("down", th.D), ("thickness", Px(10)),
             ("lefttop", lt), ("rightbottom", rb), ("visible", visible));
 
     static string Hex(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
@@ -199,9 +203,6 @@ sealed class SkinBuild
     // ------------------------------------------------------------------ pictures of the controls
 
     float IconPx => Px(16);
-
-    // VLC 3 has no menu of its own for subtitles – the track is chosen in the main menu (Subtitle › Sub Track).
-    const string SubTip = "Subtitles: menu › Subtitle › Sub Track (V cycles them)";
 
     /// <summary>"Subtle" button (Windows 11 command bar): an icon, a soft fill under the mouse.</summary>
     Imgs IconBtn(string id, char glyph, int w, int h, Color bg, Color? iconColor = null, bool active = false,
@@ -403,7 +404,7 @@ sealed class SkinBuild
         xml.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
         xml.AppendLine("<!DOCTYPE Theme PUBLIC \"-//VideoLAN//DTD VLC Skins V2.0//EN\" \"skin.dtd\">");
         xml.AppendLine("<Theme version=\"2.0\" tooltipfont=\"defaultfont\" magnet=\"12\" alpha=\"255\" movealpha=\"255\">");
-        xml.AppendLine($"  <ThemeInfo name=\"HeMi Dark {SecurityElement.Escape(colorName)} ({pct}%)\" author=\"HeMi\" email=\"\" webpage=\"\"/>");
+        xml.AppendLine(CultureInfo.InvariantCulture, $"  <ThemeInfo name=\"HeMi Dark {SecurityElement.Escape(colorName)} ({pct}%)\" author=\"HeMi\" email=\"\" webpage=\"\"/>");
         xml.Append(head);
         WriteAtlases(xml);
         xml.Append(body);
@@ -450,7 +451,7 @@ sealed class SkinBuild
         Img(tbR, W - R, 0, R, TB, lt: RT, rb: RT, action: "move", action2: "main.maximize()", visible: NotMax);
         Img(tbRq, W - R, 0, R, TB, lt: RT, rb: RT, action: "move", action2: "main.unmaximize()", visible: Max);
 
-        Btn(IconBtn("t_menu", '', Px(40), Px(24), Bg, iconPx: Px(14)), Px(6), Px(4), "dialogs.popup()", "VLC menu");
+        Btn(IconBtn("t_menu", '', Px(40), Px(24), Bg, iconPx: Px(14)), Px(6), Px(4), "dialogs.popup()");
         // A Text control of skins2 takes the mouse in its whole rectangle (the window cannot be grabbed there), so the
         // title has a fixed width and does not grow with the window – the rest of the bar stays free for dragging.
         int titleX = Px(54), titleW = Math.Min(Px(320), W - titleX - 4 * capW - Px(8));
@@ -460,12 +461,12 @@ sealed class SkinBuild
         Chk("vlc.isOnTop",
             CaptionBtn("cap_pin0", '', capW, TB, false, false),
             CaptionBtn("cap_pin1", '', capW, TB, false, false, Acc, ''),
-            "vlc.onTop()", "vlc.onTop()", "Always on top", "Not always on top", W - 4 * capW, 0, RT, RT);
-        Btn(CaptionBtn("cap_min", '', capW, TB, false, false), W - 3 * capW, 0, "vlc.minimize()", "Minimize", RT, RT);
-        Btn(CaptionBtn("cap_max", '', capW, TB, false, false), W - 2 * capW, 0, "main.maximize()", "Maximize", RT, RT, NotMax);
-        Btn(CaptionBtn("cap_res", '', capW, TB, false, false), W - 2 * capW, 0, "main.unmaximize()", "Restore", RT, RT, Max);
-        Btn(CaptionBtn("cap_close", '', capW, TB, true, true), W - capW, 0, "vlc.quit()", "Close", RT, RT, NotMax);
-        Btn(CaptionBtn("cap_closeq", '', capW, TB, true, false), W - capW, 0, "vlc.quit()", "Close", RT, RT, Max);
+            "vlc.onTop()", "vlc.onTop()", W - 4 * capW, 0, RT, RT);
+        Btn(CaptionBtn("cap_min", '', capW, TB, false, false), W - 3 * capW, 0, "vlc.minimize()", RT, RT);
+        Btn(CaptionBtn("cap_max", '', capW, TB, false, false), W - 2 * capW, 0, "main.maximize()", RT, RT, NotMax);
+        Btn(CaptionBtn("cap_res", '', capW, TB, false, false), W - 2 * capW, 0, "main.unmaximize()", RT, RT, Max);
+        Btn(CaptionBtn("cap_close", '', capW, TB, true, true), W - capW, 0, "vlc.quit()", RT, RT, NotMax);
+        Btn(CaptionBtn("cap_closeq", '', capW, TB, true, false), W - capW, 0, "vlc.quit()", RT, RT, Max);
         Close("Panel");
 
         // ---- video
@@ -481,7 +482,7 @@ sealed class SkinBuild
 
         var open = TextBtn("v_open", "Open file", Px(36), VideoBg, accent: true, glyph: '');
         int openW = BmpSize(open.U).Width;
-        Btn(open, (W - openW) / 2, VH / 2 - Px(30), "dialogs.file()", "Open file (Ctrl+O)", visible: "vlc.isStopped", kx: true, ky: true);
+        Btn(open, (W - openW) / 2, VH / 2 - Px(30), "dialogs.file()", visible: "vlc.isStopped", kx: true, ky: true);
         int hintW = Px(360);
         Txt("or drop a file here", "f_hint", TextTer, (W - hintW) / 2, VH / 2 + Px(18), hintW, "center",
             visible: "vlc.isStopped", kx: true, ky: true);
@@ -506,7 +507,7 @@ sealed class SkinBuild
         int pad = Px(14), timeW = Px(56), c1 = Px(20);
         int rs = pad + timeW + Px(6);
         Img(rail, rs, c1 - bt / 2, W - 2 * rs, bt, rb: RT);
-        SliderH("time", Thumb("th_seek", Math.Max(Px(4000), 7680), false), rs + r, c1, W - 2 * rs - 2 * r, "$T / $D", rb: RT,
+        SliderH("time", Thumb("th_seek", Math.Max(Px(4000), 7680), false), rs + r, c1, W - 2 * rs - 2 * r, rb: RT,
             visible: "not vlc.isStopped");
         Img(Bmp("cover_seek", Frame(rs, 2 * r, Bg, Border, false, false, false, true, R, false)), 0, c1 - r, rs, 2 * r);
         Txt("$T", "f_time", TextSec, pad, TextY("f_time", c1), timeW, "left");
@@ -516,31 +517,32 @@ sealed class SkinBuild
         int c2 = Px(64), by = c2 - bw / 2, mx = Px(8);
         int vrs = mx + bw + Px(4), vL = Px(88);
         Img(rail, vrs, c2 - bt / 2, vL + 2 * r, bt);
-        SliderH("volume", Thumb("th_vol", vL + r, false), vrs + r, c2, vL, "Volume: $V%");
+        SliderH("volume", Thumb("th_vol", vL + r, false), vrs + r, c2, vL);
         Img(Bmp("cover_vol", Frame(vrs, 2 * r, Bg, Border, false, false, false, true, R, false)), 0, c2 - r, vrs, 2 * r);
         Chk("vlc.isMute",
             IconBtn("m_vol", '', bw, bw, Bg),
             IconBtn("m_mute", '', bw, bw, Bg, refGlyph: ''),
-            "vlc.mute()", "vlc.mute()", "Mute (M)", "Unmute (M)", mx, by);
+            "vlc.mute()", "vlc.mute()", mx, by);
 
         // row 2 middle: playback
         TransportGroup("m", Bg, W, c2, kx: true);
 
         // row 2 right
         int x = W - mx - bw;
-        Btn(IconBtn("m_fs", '', bw, bw, Bg), x, by, "vlc.fullscreen()", "Full screen (F)", RT, RT);
+        Btn(IconBtn("m_fs", '', bw, bw, Bg), x, by, "vlc.fullscreen()", RT, RT);
         x -= bw + gap;
-        Btn(IconBtn("m_video", '', bw, bw, Bg), x, by, "dialogs.videoPopup()", "Video: aspect ratio, crop, deinterlace…", RT, RT);
+        Btn(IconBtn("m_video", '', bw, bw, Bg), x, by, "dialogs.videoPopup()", RT, RT);
         x -= bw + gap;
         Chk("eqwin.isVisible", IconBtn("m_eq0", '', bw, bw, Bg), IconBtn("m_eq1", '', bw, bw, Bg, Acc, true),
-            "eqwin.show()", "eqwin.hide()", "Equalizer", "Hide equalizer", x, by, RT, RT);
+            "eqwin.show()", "eqwin.hide()", x, by, RT, RT);
         x -= bw + gap;
         Chk("plwin.isVisible", IconBtn("m_pl0", '', bw, bw, Bg), IconBtn("m_pl1", '', bw, bw, Bg, Acc, true),
-            "plwin.show()", "plwin.hide()", "Playlist", "Hide playlist", x, by, RT, RT);
+            "plwin.show()", "plwin.hide()", x, by, RT, RT);
         x -= bw + gap + Px(8);
-        Btn(IconBtn("m_sub", '', bw, bw, Bg), x, by, "dialogs.popup()", SubTip, RT, RT);
+        // VLC 3 has no menu of its own for subtitles – the button opens the main menu (Subtitle › Sub Track)
+        Btn(IconBtn("m_sub", '', bw, bw, Bg), x, by, "dialogs.popup()", RT, RT);
         x -= bw + gap;
-        Btn(IconBtn("m_audio", '', bw, bw, Bg), x, by, "dialogs.audioPopup()", "Audio track", RT, RT);
+        Btn(IconBtn("m_audio", '', bw, bw, Bg), x, by, "dialogs.audioPopup()", RT, RT);
         Close("Panel");
 
         Close("Layout");
@@ -554,22 +556,22 @@ sealed class SkinBuild
         int cw = 4 * bw + pd + 4 * gap, by = (pd - bw) / 2;
         Open("Panel", ("x", (W - cw) / 2), ("y", c2 - pd / 2), ("width", cw), ("height", pd), ("xkeepratio", kx ? "true" : null));
         int x = 0;
-        Btn(IconBtn($"{p}_stop", '', bw, bw, bg, iconPx: Px(13)), x, by, "vlc.stop()", "Stop (S)");
+        Btn(IconBtn($"{p}_stop", '', bw, bw, bg, iconPx: Px(13)), x, by, "vlc.stop()");
         x += bw + gap;
-        Btn(IconBtn($"{p}_prev", '', bw, bw, bg), x, by, "playlist.previous()", "Previous (P)");
+        Btn(IconBtn($"{p}_prev", '', bw, bw, bg), x, by, "playlist.previous()");
         x += bw + gap;
         // the "play" triangle has its centre of mass left of the centre of its outline – it is moved a little to the right
         Chk("vlc.isPlaying", AccentBtn($"{p}_play", '', pd, bg, (float)(S * 1.25)), AccentBtn($"{p}_pause", '', pd, bg),
-            "vlc.play()", "vlc.pause()", "Play (Space)", "Pause (Space)", x, 0);
+            "vlc.play()", "vlc.pause()", x, 0);
         x += pd + gap;
-        Btn(IconBtn($"{p}_next", '', bw, bw, bg), x, by, "playlist.next()", "Next (N)");
+        Btn(IconBtn($"{p}_next", '', bw, bw, bg), x, by, "playlist.next()");
         x += bw + gap;
-        Btn(IconBtn($"{p}_rep0", '', bw, bw, bg, TextSec), x, by, "playlist.setLoop(true)", "Repeat: off",
+        Btn(IconBtn($"{p}_rep0", '', bw, bw, bg, TextSec), x, by, "playlist.setLoop(true)",
             visible: "not playlist.isLoop and not playlist.isRepeat");
         Btn(IconBtn($"{p}_rep1", '', bw, bw, bg, Acc, true), x, by, "playlist.setLoop(false);playlist.setRepeat(true)",
-            "Repeat: all", visible: "playlist.isLoop");
+            visible: "playlist.isLoop");
         Btn(IconBtn($"{p}_rep2", '', bw, bw, bg, Acc, true, ''), x, by, "playlist.setRepeat(false)",
-            "Repeat: one", visible: "playlist.isRepeat");
+            visible: "playlist.isRepeat");
         Close("Panel");
     }
 
@@ -601,7 +603,7 @@ sealed class SkinBuild
         Img("tb_c", R, 0, W - 2 * R, TB, rb: RT, action: "move");
         Img("tb_r", W - R, 0, R, TB, RT, RT, action: "move");
         Txt("Playlist", "f_title", TextPri, Px(14), TextY("f_title", TB / 2), TitleTextW("Playlist"));
-        Btn(new Imgs("cap_close_u", "cap_close_o", "cap_close_d"), W - capW, 0, "plwin.hide()", "Close", RT, RT);
+        Btn(new Imgs("cap_close_u", "cap_close_o", "cap_close_d"), W - capW, 0, "plwin.hide()", RT, RT);
         Close("Panel");
 
         Open("Panel", ("x", 0), ("y", TB), ("width", W), ("height", BH), ("rightbottom", RB));
@@ -635,26 +637,26 @@ sealed class SkinBuild
         Img(Solid("divider", Divider), 1, 0, W - 2, 1, rb: RT);
 
         int by = (BB - bw) / 2, x = Px(8);
-        Btn(IconBtn("p_add", '', bw, bw, Bg), x, by, "playlist.add()", "Add files");
+        Btn(IconBtn("p_add", '', bw, bw, Bg), x, by, "playlist.add()");
         x += bw + gap;
-        Btn(IconBtn("p_del", '', bw, bw, Bg), x, by, "playlist.del()", "Remove selected");
+        Btn(IconBtn("p_del", '', bw, bw, Bg), x, by, "playlist.del()");
         x += bw + gap;
-        Btn(IconBtn("p_sort", '', bw, bw, Bg), x, by, "playlist.sort()", "Sort by name");
+        Btn(IconBtn("p_sort", '', bw, bw, Bg), x, by, "playlist.sort()");
         x += bw + gap + Px(12);
         Chk("playlist.isRandom", IconBtn("p_shuf0", '', bw, bw, Bg, TextSec), IconBtn("p_shuf1", '', bw, bw, Bg, Acc, true),
-            "playlist.setRandom(true)", "playlist.setRandom(false)", "Shuffle: off", "Shuffle: on", x, by);
+            "playlist.setRandom(true)", "playlist.setRandom(false)", x, by);
         x += bw + gap;
-        Btn(new Imgs("m_rep0_u", "m_rep0_o", "m_rep0_d"), x, by, "playlist.setLoop(true)", "Repeat: off",
+        Btn(new Imgs("m_rep0_u", "m_rep0_o", "m_rep0_d"), x, by, "playlist.setLoop(true)",
             visible: "not playlist.isLoop and not playlist.isRepeat");
         Btn(new Imgs("m_rep1_u", "m_rep1_o", "m_rep1_d"), x, by, "playlist.setLoop(false);playlist.setRepeat(true)",
-            "Repeat: all", visible: "playlist.isLoop");
+            visible: "playlist.isLoop");
         Btn(new Imgs("m_rep2_u", "m_rep2_o", "m_rep2_d"), x, by, "playlist.setRepeat(false)",
-            "Repeat: one", visible: "playlist.isRepeat");
+            visible: "playlist.isRepeat");
 
         x = W - Px(8) - bw;
-        Btn(IconBtn("p_save", '', bw, bw, Bg), x, by, "playlist.save()", "Save playlist", RT, RT);
+        Btn(IconBtn("p_save", '', bw, bw, Bg), x, by, "playlist.save()", RT, RT);
         x -= bw + gap;
-        Btn(IconBtn("p_load", '', bw, bw, Bg), x, by, "playlist.load()", "Load playlist", RT, RT);
+        Btn(IconBtn("p_load", '', bw, bw, Bg), x, by, "playlist.load()", RT, RT);
         Close("Panel");
 
         Close("Layout");
@@ -705,19 +707,18 @@ sealed class SkinBuild
         Open("Window", ("id", "eqwin"), ("position", "West"), ("xmargin", Px(24)), ("visible", "false"), ("dragdrop", "false"));
         Open("Layout", ("id", "eq_layout"), ("width", W), ("height", H), ("minwidth", W), ("maxwidth", W), ("minheight", H), ("maxheight", H));
         Img(bgId, 0, 0, W, H, action: "move");
-        Btn(new Imgs("cap_close_u", "cap_close_o", "cap_close_d"), W - capW, 0, "eqwin.hide()", "Close");
+        Btn(new Imgs("cap_close_u", "cap_close_o", "cap_close_d"), W - capW, 0, "eqwin.hide()");
 
         var (off, on) = Toggle("eq_tg", Bg);
-        Chk("equalizer.isEnabled", off, on, "equalizer.enable()", "equalizer.disable()", "Turn the equalizer on", "Turn the equalizer off",
+        Chk("equalizer.isEnabled", off, on, "equalizer.enable()", "equalizer.disable()",
             Px(16), rowC - Px(16));
 
         var th = Thumb("th_eq", L + r, true);
-        string[] tips = { "Preamp", "60 Hz", "170 Hz", "310 Hz", "600 Hz", "1 kHz", "3 kHz", "6 kHz", "12 kHz", "14 kHz", "16 kHz" };
         for (int i = 0; i < 11; i++)
         {
             string val = i == 0 ? "equalizer.preamp" : $"equalizer.band({i - 1})";
             El("Slider", ("x", cols[i]), ("y", railTop + r), ("points", $"(0,{L}),(0,0)"), ("value", val),
-                ("up", th.U), ("over", th.O), ("down", th.D), ("thickness", Px(12)), ("tooltiptext", (string?)null));
+                ("up", th.U), ("over", th.O), ("down", th.D), ("thickness", Px(12)));
         }
         Img(coverId, 0, railBot, W, H - railBot, action: "move");
         Close("Layout");
@@ -749,29 +750,29 @@ sealed class SkinBuild
         Open("Layout", ("id", "fsc_layout"), ("width", W), ("height", H), ("minwidth", W), ("maxwidth", W), ("minheight", H), ("maxheight", H));
         Img(bgId, 0, 0, W, H);
 
-        SliderH("time", new Imgs("th_seek_u", "th_seek_o", "th_seek_d"), rs + r, c1, W - 2 * rs - 2 * r, "$T / $D",
+        SliderH("time", new Imgs("th_seek_u", "th_seek_o", "th_seek_d"), rs + r, c1, W - 2 * rs - 2 * r,
             visible: "not vlc.isStopped");
         Img(seekCover, 0, c1 - r, rs, 2 * r);
         Txt("$T", "f_time", TextSec, pad, TextY("f_time", c1), timeW, "left");
         Txt("$D", "f_time", TextSec, W - pad - timeW, TextY("f_time", c1), timeW, "right");
 
-        SliderH("volume", new Imgs("th_vol_u", "th_vol_o", "th_vol_d"), vrs + r, c2, vL, "Volume: $V%");
+        SliderH("volume", new Imgs("th_vol_u", "th_vol_o", "th_vol_d"), vrs + r, c2, vL);
         Img(volCover, 0, c2 - r, vrs, 2 * r);
         Chk("vlc.isMute",
             IconBtn("f_vol", '', bw, bw, FscBg),
             IconBtn("f_mute", '', bw, bw, FscBg, refGlyph: ''),
-            "vlc.mute()", "vlc.mute()", "Mute (M)", "Unmute (M)", mx, by);
+            "vlc.mute()", "vlc.mute()", mx, by);
 
         TransportGroup("f", FscBg, W, c2, kx: false);
 
         int x = W - mx - bw;
-        Btn(IconBtn("f_exitfs", '', bw, bw, FscBg), x, by, "vlc.fullscreen()", "Exit full screen (Esc)");
+        Btn(IconBtn("f_exitfs", '', bw, bw, FscBg), x, by, "vlc.fullscreen()");
         x -= bw + gap;
-        Btn(IconBtn("f_video", '', bw, bw, FscBg), x, by, "dialogs.videoPopup()", "Video: aspect ratio, crop, deinterlace…");
+        Btn(IconBtn("f_video", '', bw, bw, FscBg), x, by, "dialogs.videoPopup()");
         x -= bw + gap + Px(8);
-        Btn(IconBtn("f_sub", '', bw, bw, FscBg), x, by, "dialogs.popup()", SubTip);
+        Btn(IconBtn("f_sub", '', bw, bw, FscBg), x, by, "dialogs.popup()");
         x -= bw + gap;
-        Btn(IconBtn("f_audio", '', bw, bw, FscBg), x, by, "dialogs.audioPopup()", "Audio track");
+        Btn(IconBtn("f_audio", '', bw, bw, FscBg), x, by, "dialogs.audioPopup()");
 
         Close("Layout");
         Close("Window");

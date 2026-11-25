@@ -21,7 +21,7 @@
     <AssemblyName>HeMiDark</AssemblyName>
     <Product>HeMi Dark</Product>
     <!-- big changes +1, smaller +0.1, really small +0.0.1 -->
-    <Version>1.1.2</Version>
+    <Version>1.1.3</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 

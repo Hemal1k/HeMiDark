@@ -1,5 +1,7 @@
 ﻿using System.Drawing;
+using System.Globalization;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
 namespace HeMiDark;
@@ -21,6 +23,7 @@ static class Program
     };
 
     static readonly int[] AllScales = { 100, 125, 140, 150, 175, 200 };
+    const int MinScale = 100, MaxScale = 400;
 
     /// <summary>
     /// Builds the skins into build\skins\&lt;colour&gt;\HeMi-Dark-&lt;colour&gt;-&lt;scale&gt;.vlt – every colour and scaling, or
@@ -34,21 +37,58 @@ static class Program
         var variants = Palettes.Select(p => (p.key, p.name, color: ColorTranslator.FromHtml(p.hex))).ToList();
         for (int i = 0; i < args.Length; i++)
         {
-            switch (args[i])
+            string sw = args[i];
+            if ((sw is "--scales" or "--colors" or "--accent") && i + 1 >= args.Length)
+            {
+                Console.Error.WriteLine($"{sw} needs a value");
+                return 2;
+            }
+            switch (sw)
             {
                 case "--scales":
-                    scales = args[++i].Split(',').Select(int.Parse).ToList();
+                    scales = new();
+                    foreach (string s in args[++i].Split(','))
+                    {
+                        if (!int.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out int pct) || pct < MinScale || pct > MaxScale)
+                        {
+                            Console.Error.WriteLine($"--scales: \"{s}\" is not a scale from {MinScale} to {MaxScale}");
+                            return 2;
+                        }
+                        scales.Add(pct);
+                    }
                     break;
                 case "--colors":
                     var keys = args[++i].Split(',');
+                    string? unknown = keys.FirstOrDefault(k => Palettes.All(p => p.key != k));
+                    if (unknown != null)
+                    {
+                        Console.Error.WriteLine($"--colors: unknown color \"{unknown}\" (known: {string.Join(", ", Palettes.Select(p => p.key))})");
+                        return 2;
+                    }
                     variants = variants.Where(v => keys.Contains(v.key)).ToList();
                     break;
                 case "--accent": // an own colour, or "system" = the accent of Windows
                     string a = args[++i];
+                    if (a != "system" && !Regex.IsMatch(a, "^#[0-9A-Fa-f]{6}$"))
+                    {
+                        Console.Error.WriteLine($"--accent: \"{a}\" is not #RRGGBB or system");
+                        return 2;
+                    }
                     variants = new() { ("custom", "Custom", a == "system" ? ReadAccent() : ColorTranslator.FromHtml(a)) };
                     break;
-                default: Console.Error.WriteLine($"Unknown switch {args[i]}"); return 2;
+                default: Console.Error.WriteLine($"Unknown switch {sw}"); return 2;
             }
+        }
+        // checked before build\skins is deleted, so a wrong call leaves the skins built before
+        if (variants.Count == 0 || scales.Count == 0)
+        {
+            Console.Error.WriteLine("Nothing to build (check --colors / --scales).");
+            return 2;
+        }
+        if (!Gfx.HasFont(Gfx.IconFontName))
+        {
+            Console.Error.WriteLine($"The font {Gfx.IconFontName} is missing (part of Windows 11, or https://aka.ms/SegoeFluentIcons).");
+            return 1;
         }
 
         string version = Version();
@@ -63,11 +103,13 @@ static class Program
             {
                 string work = Path.Combine(root, "build", "work", $"{key}-{pct}");
                 string vlt = Path.Combine(skins, key, $"HeMi-Dark-{key}-{pct}.vlt");
-                new SkinBuild(fontDir, work, pct, color, name).Build(vlt);
+                using var sb = new SkinBuild(fontDir, work, pct, color, name);
+                sb.Build(vlt);
                 Console.WriteLine($"  {vlt}");
             }
         }
-        Directory.Delete(Path.Combine(root, "build", "work"), true);
+        string workRoot = Path.Combine(root, "build", "work");
+        if (Directory.Exists(workRoot)) Directory.Delete(workRoot, true);
         return 0;
     }
 
@@ -88,6 +130,7 @@ static class Program
                 return Color.FromArgb(p[4], p[5], p[6]);
         }
         catch { /* the default below */ }
+        Console.Error.WriteLine("Windows accent not found, using #4CC2FF");
         return ColorTranslator.FromHtml("#4CC2FF");
     }
 
